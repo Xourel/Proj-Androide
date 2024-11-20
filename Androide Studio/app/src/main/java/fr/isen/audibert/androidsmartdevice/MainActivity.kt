@@ -1,5 +1,4 @@
 package fr.isen.audibert.androidsmartdevice
-
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -20,8 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextAlign.Companion.Center
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.isen.audibert.androidsmartdevice.ui.theme.AndroidSmartDeviceTheme
@@ -32,61 +30,53 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             AndroidSmartDeviceTheme {
-                Scaffold( modifier = Modifier.fillMaxSize() ) { innerPadding ->
+                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     MainContentComponent(
                         innerPadding = innerPadding,
-                        onButtonClick = {
-                            val intent = Intent(this, ScanActivity::class.java)
-                            startActivity(intent)
-                        })
+                        onButtonClick = { this.goToScan() }
+                    )
                 }
             }
         }
+    }
+    private fun goToScan(){
+        val intent = Intent(this, ScanActivity::class.java)
+        startActivity(intent)
     }
 }
 
 @Composable
 fun MainContentComponent(innerPadding: PaddingValues, onButtonClick: () -> Unit){
-    Column(
-        modifier = Modifier.fillMaxSize()
-            .padding(8.dp,12.dp),
+    Column (
+        modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.SpaceBetween
-
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
+    )
+    {
+        Column (
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         )
         {
             Text(
-                text = "Bienvenue sur AndroidSmartDevice",
-                modifier = Modifier.padding(innerPadding),
-                fontSize = 40.sp ,
-                lineHeight = 40.sp,
-                textAlign = TextAlign.Center
+                text = "Android Smart Device",
+                fontSize = 22.sp,
+                textAlign = Center,
+                modifier = Modifier.padding(innerPadding)
             )
-            Text(text = "pour démarer le scan des devices BLE, cliquer sur le bouton")
+            Text(text = "Cette application permet de scanner des appareils BLE à proximité.")
             Image(
-                painter = painterResource(R.drawable.bluetooth_icon_670069_1280),
-                contentDescription = "Bluetooth logo",
-                modifier = Modifier.size(100.dp)
-                                    .padding(0.dp,16.dp)
+                modifier = Modifier
+                    .size(100.dp)
+                    .padding(12.dp,0.dp),
+                painter = painterResource(R.drawable.bluetooth_icon),
+                contentDescription = "logo"
             )
         }
-        Button(
-            modifier = Modifier
-                .fillMaxWidth(),
-            onClick = onButtonClick) {
-            Text("Valider")
+        Button(modifier = Modifier.fillMaxWidth().padding(4.dp,10.dp),onClick = onButtonClick)
+        {
+            Text(text = "Scan BLE")
         }
     }
-}
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    AndroidSmartDeviceTheme {
 
-    }
 }

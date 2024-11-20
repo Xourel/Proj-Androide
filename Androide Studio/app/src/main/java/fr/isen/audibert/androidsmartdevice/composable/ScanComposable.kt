@@ -1,35 +1,58 @@
+package fr.isen.audibert.androidsmartdevice.composable
+
+import android.annotation.SuppressLint
+import android.bluetooth.le.ScanResult
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.isen.audibert.androidsmartdevice.R
-import fr.isen.audibert.androidsmartdevice.ui.theme.AndroidSmartDeviceTheme
 
+
+class SettingsFlags(
+    var ErrorMessage: String,
+    var Error: Boolean,
+    var Scanning: Boolean,
+    var ScanList: MutableList<ScanResult>
+)
+
+
+@SuppressLint("MissingPermission")
 @Composable
-fun ScanContentComponent(innerPadding: PaddingValues, bleList: List<String>? = null) {
-    val expanded = remember { mutableStateOf(true) }
+fun ScanContentComponent(
+    innerPadding: PaddingValues,
+    flags: SettingsFlags,
+    onToggleScan: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -60,11 +83,14 @@ fun ScanContentComponent(innerPadding: PaddingValues, bleList: List<String>? = n
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(if (expanded.value) "Commencer le scan" else "Scan en cours")
+                        Text(if (!flags.Scanning) "Commencer le scan" else "Scan en cours")
                         ElevatedButton(
-                            onClick = { expanded.value = !expanded.value }
+                            onClick = {
+                                flags.Scanning = !flags.Scanning
+                                onToggleScan()
+                            }
                         ) {
-                            if (expanded.value) {
+                            if (!flags.Scanning) {
                                 Icon(
                                     painter = painterResource(R.drawable.start),
                                     contentDescription = "Start logo",
@@ -80,7 +106,7 @@ fun ScanContentComponent(innerPadding: PaddingValues, bleList: List<String>? = n
                         }
                     }
                 }
-                if (!expanded.value) {
+                if (flags.Scanning) {
                     LinearProgressIndicator(
                         modifier = Modifier.fillMaxWidth(),
                         color = MaterialTheme.colorScheme.secondary,
@@ -90,15 +116,24 @@ fun ScanContentComponent(innerPadding: PaddingValues, bleList: List<String>? = n
             }
 
         }
-        if (!bleList.isNullOrEmpty()) {
+        if (flags.ScanList.isNotEmpty()) {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp) // Espace entre les éléments
             ) {
-                items(bleList) { name ->
-                    Text(text = name)
+                items(flags.ScanList) { result ->
+                    val signalStrength = result.rssi
+                    val deviceName = result.device.name ?: "Appareil inconnu"
+                    val deviceAddress = result.device.address
+                    //if (deviceName != "Appareil inconnu") {
+                        DeviceItem(
+                            deviceName = deviceName,
+                            deviceAddress = deviceAddress,
+                            signalStrength = signalStrength,
+                        )
+                    //}
                 }
             }
         } else {
@@ -114,13 +149,142 @@ fun ScanContentComponent(innerPadding: PaddingValues, bleList: List<String>? = n
     }
 }
 
+@Composable
+fun DeviceItem(
+    deviceName: String,
+    deviceAddress: String,
+    signalStrength: Int,
+    //onConnectClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(8.dp))
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        // Signal Strength Circle
+        Box(
+            modifier = Modifier
+                .size(50.dp)
+                .background(
+                    color = getSignalColor(signalStrength),
+                    shape = CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = signalStrength.toString(),
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp
+            )
+        }
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        // Device Info Column
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            Text(
+                text = deviceName,
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp
+            )
+            Text(
+                text = deviceAddress,
+                fontSize = 14.sp,
+                color = Color.Gray
+            )
+            Text(
+                text = "No Services", // Placeholder for services
+                fontSize = 12.sp,
+                color = Color.Gray
+            )
+        }
+
+        // Connect Button
+        Button(
+            onClick = {},
+            shape = RoundedCornerShape(50),
+            modifier = Modifier.height(40.dp)
+        ) {
+            Text(text = "CONNECT", fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+fun getSignalColor(signalStrength: Int): Color {
+    return when {
+        signalStrength > -50 -> Color.Green
+        signalStrength > -70 -> Color.Yellow
+        else -> Color.Red
+    }
+}
+
+/*
+@Composable
+fun DeviceItem(
+    deviceName: String,
+    deviceAddress: String,
+    signalStrength: Int,
+    signalColor: Color,
+    uuidList: List<String>,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .clickable { onClick() }
+            .background(signalColor.copy(alpha = 0.2f))
+            .padding(16.dp)
+    ) {
+        Text(
+            text = "Nom : $deviceName",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold
+        )
+        Text(text = "Adresse : $deviceAddress", fontSize = 14.sp, color = Color.Gray)
+        Text(text = "Signal : $signalStrength dBm", fontSize = 14.sp, color = Color.Gray)
+
+        // Affichage des UUIDs
+        if (uuidList.isNotEmpty()) {
+            Text(
+                text = "UUID(s) : ${uuidList.joinToString(", ")}",
+                fontSize = 14.sp,
+                color = Color.Gray
+            )
+        } else {
+            Text(
+                text = "Aucun UUID trouvé",
+                fontSize = 14.sp,
+                color = Color.Gray
+            )
+        }
+    }
+}
+*/
+/*
+@SuppressLint("MissingPermission")
+fun getDeviceUuid(scanResult: ScanResult): List<String> {
+    // Extraire les UUID des services de l'appareil
+    val uuids = scanResult.scanRecord?.serviceUuids
+    return uuids?.map { it.toString() } ?: emptyList()
+}*/
+
+/*
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview2() {
     AndroidSmartDeviceTheme {
-        ScanContentComponent(
+        fr.isen.audibert.androidsmartdevice.composable.ScanContentComponent(
             innerPadding = PaddingValues(0.dp),
-            bleList = listOf("Alice", "Bob", "Charlie", "David", "Eva")
+            bleList = listOf("Alice", "Bob", "Charlie", "David", "Eva"),
+
         )
     }
-}
+}*/
