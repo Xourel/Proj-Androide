@@ -131,7 +131,7 @@ fun ScanContentComponent(
                     val signalStrength = result.rssi
                     val deviceName = result.device.name ?: "Appareil inconnu"
                     val deviceAddress = result.device.address
-                    //if (deviceName != "Appareil inconnu") {
+                    if (deviceName != "Appareil inconnu") {
                     DeviceItem(
                         deviceName = deviceName,
                         deviceAddress = deviceAddress,
@@ -145,7 +145,7 @@ fun ScanContentComponent(
                             context.startActivity(intent)
                         }
                     )
-                    //}
+                    }
                 }
             }
         } else {
