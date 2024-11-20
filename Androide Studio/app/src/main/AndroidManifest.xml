@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" /> <!-- Permissions pour la localisation (nécessaire pour les scans BLE sur Android < 12) -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -14,6 +15,7 @@
     <uses-permission
         android:name="android.permission.BLUETOOTH_ADVERTISE"
         tools:targetApi="31" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -22,6 +24,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AndroidSmartDevice"
         tools:targetApi="31">
+        <activity
+            android:name=".ConnectionActivity"
+            android:exported="false"
+            android:label="@string/title_activity_connection"
+            android:theme="@style/Theme.AndroidSmartDevice" />
         <activity
             android:name=".ScanActivity"
             android:exported="false"

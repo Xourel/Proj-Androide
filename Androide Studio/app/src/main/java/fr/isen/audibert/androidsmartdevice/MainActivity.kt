@@ -1,4 +1,5 @@
 package fr.isen.audibert.androidsmartdevice
+
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -27,7 +28,7 @@ import fr.isen.audibert.androidsmartdevice.ui.theme.AndroidSmartDeviceTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        enableEdgeToEdge()  // Active le mode immersif (bord à bord) pour une meilleure expérience visuelle
         setContent {
             AndroidSmartDeviceTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -39,44 +40,57 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-    private fun goToScan(){
+
+    private fun goToScan() {
         val intent = Intent(this, ScanActivity::class.java)
         startActivity(intent)
     }
 }
 
 @Composable
-fun MainContentComponent(innerPadding: PaddingValues, onButtonClick: () -> Unit){
-    Column (
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.SpaceBetween
+fun MainContentComponent(innerPadding: PaddingValues, onButtonClick: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding),
+        verticalArrangement = Arrangement.SpaceBetween,
+        horizontalAlignment = Alignment.CenterHorizontally
     )
     {
-        Column (
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+        //Titre
+        Text(
+            text = "Android Smart Device",
+            fontSize = 22.sp,
+            textAlign = Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp)
         )
-        {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        ) {
             Text(
-                text = "Android Smart Device",
-                fontSize = 22.sp,
+                text = "Cette application permet de scanner des appareils BLE à proximité.",
                 textAlign = Center,
-                modifier = Modifier.padding(innerPadding)
+                modifier = Modifier.padding(bottom = 8.dp)
             )
-            Text(text = "Cette application permet de scanner des appareils BLE à proximité.")
             Image(
                 modifier = Modifier
-                    .size(100.dp)
-                    .padding(12.dp,0.dp),
+                    .size(80.dp)
+                    .padding(vertical = 8.dp),
                 painter = painterResource(R.drawable.bluetooth_icon),
                 contentDescription = "logo"
             )
         }
-        Button(modifier = Modifier.fillMaxWidth().padding(4.dp,10.dp),onClick = onButtonClick)
+        Button(
+            modifier = Modifier
+                .fillMaxWidth(0.8f)
+                .padding(bottom = 30.dp),
+            onClick = onButtonClick
+        )
         {
             Text(text = "Scan BLE")
         }
     }
-
-
 }

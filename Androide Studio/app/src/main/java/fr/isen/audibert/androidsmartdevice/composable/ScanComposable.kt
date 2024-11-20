@@ -2,6 +2,7 @@ package fr.isen.audibert.androidsmartdevice.composable
 
 import android.annotation.SuppressLint
 import android.bluetooth.le.ScanResult
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -27,21 +28,24 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import fr.isen.audibert.androidsmartdevice.ConnectionActivity
 import fr.isen.audibert.androidsmartdevice.R
 
 
 class SettingsFlags(
     var ErrorMessage: String,
     var Error: Boolean,
-    var Scanning: Boolean,
+    var Scanning: MutableState<Boolean>,
     var ScanList: MutableList<ScanResult>
 )
 
@@ -53,6 +57,7 @@ fun ScanContentComponent(
     flags: SettingsFlags,
     onToggleScan: () -> Unit
 ) {
+    val context = LocalContext.current
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -83,14 +88,13 @@ fun ScanContentComponent(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(if (!flags.Scanning) "Commencer le scan" else "Scan en cours")
+                        Text(if (!flags.Scanning.value) "Commencer le scan" else "Scan en cours")
                         ElevatedButton(
                             onClick = {
-                                flags.Scanning = !flags.Scanning
                                 onToggleScan()
                             }
                         ) {
-                            if (!flags.Scanning) {
+                            if (!flags.Scanning.value) {
                                 Icon(
                                     painter = painterResource(R.drawable.start),
                                     contentDescription = "Start logo",
@@ -106,7 +110,7 @@ fun ScanContentComponent(
                         }
                     }
                 }
-                if (flags.Scanning) {
+                if (flags.Scanning.value) {
                     LinearProgressIndicator(
                         modifier = Modifier.fillMaxWidth(),
                         color = MaterialTheme.colorScheme.secondary,
@@ -128,11 +132,19 @@ fun ScanContentComponent(
                     val deviceName = result.device.name ?: "Appareil inconnu"
                     val deviceAddress = result.device.address
                     //if (deviceName != "Appareil inconnu") {
-                        DeviceItem(
-                            deviceName = deviceName,
-                            deviceAddress = deviceAddress,
-                            signalStrength = signalStrength,
-                        )
+                    DeviceItem(
+                        deviceName = deviceName,
+                        deviceAddress = deviceAddress,
+                        signalStrength = signalStrength,
+                        onConnectClick = {
+
+                            val intent = Intent(context, ConnectionActivity::class.java).apply {
+                                putExtra("deviceName", deviceName)
+                                putExtra("deviceAddress", deviceAddress)
+                            }
+                            context.startActivity(intent)
+                        }
+                    )
                     //}
                 }
             }
@@ -154,7 +166,7 @@ fun DeviceItem(
     deviceName: String,
     deviceAddress: String,
     signalStrength: Int,
-    //onConnectClick: () -> Unit
+    onConnectClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -208,7 +220,7 @@ fun DeviceItem(
 
         // Connect Button
         Button(
-            onClick = {},
+            onClick = { onConnectClick() },
             shape = RoundedCornerShape(50),
             modifier = Modifier.height(40.dp)
         ) {

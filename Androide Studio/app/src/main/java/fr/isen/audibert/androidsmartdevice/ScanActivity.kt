@@ -21,6 +21,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.core.app.ActivityCompat
 import fr.isen.audibert.androidsmartdevice.ui.theme.AndroidSmartDeviceTheme
@@ -51,12 +52,12 @@ class ScanActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
+        val scanning = mutableStateOf<Boolean>(false)
         val scanList = mutableStateListOf<ScanResult>() // Initialise ScanList
         flags = SettingsFlags(
             ErrorMessage = "",
             Error = false,
-            Scanning = false,
+            Scanning = scanning,
             ScanList = scanList
         )
         setContent {
@@ -65,7 +66,10 @@ class ScanActivity : ComponentActivity() {
                     ScanContentComponent(
                         innerPadding = innerPadding,
                         flags = flags,
-                        onToggleScan = {scanLeDevice()}
+                        onToggleScan = {
+                            flags.Scanning.value = !flags.Scanning.value
+                            scanLeDevice()
+                        }
                     )
                 }
             }
@@ -91,17 +95,17 @@ class ScanActivity : ComponentActivity() {
     private fun scanLeDevice() {
         val bluetoothLeScanner = bluetoothAdapter?.bluetoothLeScanner
         handler = Handler(mainLooper)
-        if (flags.Scanning) {
+        if (flags.Scanning.value) {
             // Démarrer le scan
             handler.postDelayed({
-                flags.Scanning = false
+                flags.Scanning.value = false
                 bluetoothLeScanner?.stopScan(leScanCallback)
             }, SCAN_PERIOD)
             bluetoothLeScanner?.startScan(leScanCallback)
         } else {
             // Arrêter le scan
             bluetoothLeScanner?.stopScan(leScanCallback)
-            flags.Scanning = false
+            flags.Scanning.value = false
         }
     }
 
